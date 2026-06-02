@@ -1,3 +1,22 @@
+// Supabase Configuration - REPLACE placeholders with your details from Settings -> API
+const SUPABASE_URL = "https://your-project-id.supabase.co";
+const SUPABASE_KEY = "your-anon-public-key";
+
+// Initialize Supabase Client if configured
+let supabase = null;
+const isConfigured = SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.includes("your-project-id");
+
+if (isConfigured && typeof supabase !== 'undefined') {
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Connected directly to Supabase Cloud Database.");
+    } catch (e) {
+        console.error("Failed to initialize Supabase client:", e);
+    }
+} else {
+    console.warn("Supabase credentials unset. Running in LocalStorage Sandbox Mode.");
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const rsvpForm = document.getElementById('rsvp-form');
     const plusOneCheckbox = document.getElementById('has_plus_one');
@@ -6,6 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const lookupSection = document.getElementById('lookup-section');
     const btnFetchRsvp = document.getElementById('btn-fetch-rsvp');
     const toast = document.getElementById('toast');
+
+    // Show warning if operating in Sandbox Mode
+    if (!supabase) {
+        setTimeout(() => {
+            showToast("Sandbox Mode: Add Supabase credentials in main.js to sync with Cloud!");
+        }, 1000);
+    }
 
     // Show or hide plus one fields smoothly
     plusOneCheckbox.addEventListener('change', () => {
@@ -23,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (lookupSection.classList.contains('hidden')) {
             lookupSection.classList.remove('hidden');
             toggleLookup.textContent = 'Back to RSVP';
-            toggleLookup.style.backgroundColor = '#F9C613'; // Q-R Yellow highlight
+            toggleLookup.style.backgroundColor = '#F9C613';
         } else {
             lookupSection.classList.add('hidden');
             toggleLookup.textContent = 'Modify RSVP';
@@ -58,55 +84,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const fullPhone = `${countryCode}${rawPhone}`;
-        
-        try {
-            const response = await fetch(`/api/rsvp/${encodeURIComponent(fullPhone)}`);
-            const data = await response.json();
+        let guest = null;
 
-            if (response.ok && data.success) {
-                const guest = data.guest;
-                
-                // Pre-fill primary details
-                document.getElementById('name').value = guest.name;
-                document.getElementById('phone_number').value = rawPhone;
-                document.getElementById('country-code').value = countryCode;
+        if (supabase) {
+            try {
+                const { data, error } = await supabase
+                    .from('guests')
+                    .select('*')
+                    .eq('phone_number', fullPhone)
+                    .maybeSingle();
 
-                // Select correct status radio button
-                const statusRadio = document.querySelector(`input[name="status"][value="${guest.status}"]`);
-                if (statusRadio) statusRadio.checked = true;
-
-                // Select correct dietary preference
-                const dietaryRadio = document.querySelector(`input[name="dietary_pref"][value="${guest.dietary_pref}"]`);
-                if (dietaryRadio) dietaryRadio.checked = true;
-
-                // Handle plus one
-                if (guest.has_plus_one) {
-                    plusOneCheckbox.checked = true;
-                    plusOneFields.classList.add('open');
-                    document.getElementById('plus_one_name').value = guest.plus_one_name || '';
-                    document.getElementById('plus_one_name').setAttribute('required', 'true');
-                    
-                    const plusOneDietaryRadio = document.querySelector(`input[name="plus_one_dietary"][value="${guest.plus_one_dietary}"]`);
-                    if (plusOneDietaryRadio) plusOneDietaryRadio.checked = true;
-                } else {
-                    plusOneCheckbox.checked = false;
-                    plusOneFields.classList.remove('open');
-                    document.getElementById('plus_one_name').value = '';
-                    document.getElementById('plus_one_name').removeAttribute('required');
-                }
-
-                showToast('Ticket details fetched! Modify details and re-submit.');
-                
-                // Close lookup panel and reset button text
-                lookupSection.classList.add('hidden');
-                toggleLookup.textContent = 'Modify RSVP';
-                toggleLookup.style.backgroundColor = '';
-            } else {
-                showToast(data.message || 'Ticket not found.');
+                if (error) throw error;
+                guest = data;
+            } catch (err) {
+                console.error('Supabase fetch error:', err);
+                showToast('Error searching Cloud Database.');
+                return;
             }
-        } catch (error) {
-            console.error('Error fetching RSVP:', error);
-            showToast('Failed to fetch ticket. Please try again.');
+        } else {
+            // LocalStorage Sandbox Fallback
+            const sandboxData = localStorage.getItem('cbs_party_rsvp');
+            if (sandboxData) {
+                const db = JSON.parse(sandboxData);
+                guest = db[fullPhone] || null;
+            }
+        }
+
+        if (guest) {
+            // Pre-fill primary details
+            document.getElementById('name').value = guest.name;
+            document.getElementById('phone_number').value = rawPhone;
+            document.getElementById('country-code').value = countryCode;
+
+            // Select correct status radio button
+            const statusRadio = document.querySelector(`input[name="status"][value="${guest.status}"]`);
+            if (statusRadio) statusRadio.checked = true;
+
+            // Select correct dietary preference
+            const dietaryRadio = document.querySelector(`input[name="dietary_pref"][value="${guest.dietary_pref}"]`);
+            if (dietaryRadio) dietaryRadio.checked = true;
+
+            // Handle plus one
+            if (guest.has_plus_one) {
+                plusOneCheckbox.checked = true;
+                plusOneFields.classList.add('open');
+                document.getElementById('plus_one_name').value = guest.plus_one_name || '';
+                document.getElementById('plus_one_name').setAttribute('required', 'true');
+                
+                const plusOneDietaryRadio = document.querySelector(`input[name="plus_one_dietary"][value="${guest.plus_one_dietary}"]`);
+                if (plusOneDietaryRadio) plusOneDietaryRadio.checked = true;
+            } else {
+                plusOneCheckbox.checked = false;
+                plusOneFields.classList.remove('open');
+                document.getElementById('plus_one_name').value = '';
+                document.getElementById('plus_one_name').removeAttribute('required');
+            }
+
+            showToast('Ticket details fetched! Modify details and re-submit.');
+            
+            // Close lookup panel and reset button
+            lookupSection.classList.add('hidden');
+            toggleLookup.textContent = 'Modify RSVP';
+            toggleLookup.style.backgroundColor = '';
+        } else {
+            showToast('Commuter profile not found. Please register first.');
         }
     });
 
@@ -141,35 +182,41 @@ document.addEventListener('DOMContentLoaded', () => {
             status: status,
             dietary_pref: dietaryPref,
             has_plus_one: hasPlusOne,
-            plus_one_name: plusOneName,
-            plus_one_dietary: plusOneDietary
+            plus_one_name: plusOneName || null,
+            plus_one_dietary: plusOneDietary || null,
+            updated_at: new Date().toISOString()
         };
 
-        try {
-            const response = await fetch('/api/rsvp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+        if (supabase) {
+            try {
+                const { error } = await supabase
+                    .from('guests')
+                    .upsert(payload);
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                showToast(data.message || 'Boarding Pass Generated!');
+                if (error) throw error;
+                showToast('Boarding Pass Generated on Cloud!');
                 
-                // If the user marked themselves as Pass, clear form inputs
                 if (status === 'Pass') {
                     rsvpForm.reset();
                     plusOneFields.classList.remove('open');
                 }
-            } else {
-                showToast(data.message || 'Error printing boarding pass.');
+            } catch (err) {
+                console.error('Supabase save error:', err);
+                showToast('Error syncing Boarding Pass with Cloud.');
             }
-        } catch (error) {
-            console.error('Error submitting RSVP:', error);
-            showToast('Connection error. Please try again.');
+        } else {
+            // LocalStorage Sandbox Save
+            const sandboxData = localStorage.getItem('cbs_party_rsvp') || '{}';
+            const db = JSON.parse(sandboxData);
+            db[fullPhone] = payload;
+            localStorage.setItem('cbs_party_rsvp', JSON.stringify(db));
+
+            showToast('Boarding Pass Saved locally! (Sandbox)');
+
+            if (status === 'Pass') {
+                rsvpForm.reset();
+                plusOneFields.classList.remove('open');
+            }
         }
     });
 });

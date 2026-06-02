@@ -1,13 +1,15 @@
-# CBS Gotham Express RSVP Web App (Supabase Edition)
+# CBS Gotham Express RSVP Web App (Serverless Supabase)
 
 A beautifully styled, mobile-friendly, Columbia Blue and NYC Subway-themed RSVP web application for the CBS Delhi Houseparty.
+
+This codebase operates as a **pure serverless frontend**, connecting directly from the client's browser to your Supabase Cloud Database. No servers (like Flask/Python) are required to run or host this application.
 
 ---
 
 ## 🚀 Features
 
-- **Supabase Cloud Database**: Stores response payloads securely on the cloud.
-- **Commuter Fallback Sandbox**: Connects to an in-memory database if Supabase credentials are not supplied, allowing developers to play with all UI inputs locally immediately.
+- **Direct Cloud Integration**: Connects directly to Supabase from the browser using the official client library loaded via CDN.
+- **Commuter Local Sandbox**: If Supabase keys are not configured, the site operates in **Sandbox Mode** using the browser's `LocalStorage`. This lets you double-click `index.html` to run, register, and modify tickets completely locally immediately!
 - **Commuter Tickets Lookup**: Guests can query their WhatsApp numbers to pull and edit their RSVPs.
 - **Dynamic +1 Details**: Smooth CSS collapsible drawers capturing guest preferences.
 
@@ -43,36 +45,23 @@ using (true)
 with check (true);
 ```
 
-4. Go to **Project Settings** -> **API** and copy your **Project URL** and **Anon Key**.
+4. Go to **Project Settings** -> **API** and copy your **Project URL** and **Anon Key** (Anon public key).
 
 ---
 
-### 2. Local Setup & Installation
+### 2. Connect Your App
+Open **`static/js/main.js`** and paste your credentials at the top of the file:
+```javascript
+const SUPABASE_URL = "https://your-project-id.supabase.co";
+const SUPABASE_KEY = "your-anon-public-key";
+```
 
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Open `.env` and fill in your copied credentials:
-   ```env
-   SUPABASE_URL=https://your-project-id.supabase.co
-   SUPABASE_KEY=your-anon-public-key
-   ```
-3. Install dependencies:
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-4. Run the Flask Server:
-   ```bash
-   python3 app.py
-   ```
-5. View in browser: Open [http://127.0.0.1:5000](http://127.0.0.1:5000)
+Double click `index.html` on your computer, and you're ready!
 
 ---
 
-## 📁 Repository Structure
-- `app.py`: Flask application server containing API endpoints.
-- `database.py`: Connector utilizing the official `supabase` python SDK (with sandbox fallback).
-- `templates/index.html`: Fully custom HTML commuter UI.
-- `static/css/style.css`: HSL design system theme.
-- `static/js/main.js`: Form submission and lookup controller.
+## 🌐 Deploy to Lovable, Vercel, or Netlify
+Because this is a static site:
+1. Push this code to a **GitHub Repository**.
+2. Go to **Lovable.dev**, **Vercel.com**, or **Netlify.com**.
+3. Import the GitHub repository and click **Deploy**. It will deploy instantly for free!
