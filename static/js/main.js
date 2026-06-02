@@ -6,7 +6,7 @@ const SUPABASE_KEY = "your-anon-public-key";
 let supabase = null;
 const isConfigured = SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.includes("your-project-id");
 
-if (isConfigured && typeof supabase !== 'undefined') {
+if (isConfigured && typeof window.supabase !== 'undefined') {
     try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         console.log("Connected directly to Supabase Cloud Database.");
@@ -18,6 +18,7 @@ if (isConfigured && typeof supabase !== 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Form and Step selectors
     const rsvpForm = document.getElementById('rsvp-form');
     const plusOneCheckbox = document.getElementById('has_plus_one');
     const plusOneFields = document.getElementById('plus-one-fields');
@@ -26,12 +27,106 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFetchRsvp = document.getElementById('btn-fetch-rsvp');
     const toast = document.getElementById('toast');
 
+    // Multi-pane navigation elements
+    const panes = document.querySelectorAll('.step-pane');
+    const stations = document.querySelectorAll('.station');
+    const btnNext = document.querySelectorAll('.btn-next');
+    const btnPrev = document.querySelectorAll('.btn-prev');
+    const btnToSummary = document.getElementById('btn-to-summary');
+
+    let currentStep = 1;
+
     // Show warning if operating in Sandbox Mode
     if (!supabase) {
         setTimeout(() => {
             showToast("Sandbox Mode: Add Supabase credentials in main.js to sync with Cloud!");
-        }, 1000);
+        }, 1200);
     }
+
+    // Step navigation controller
+    function navigateToStep(step) {
+        if (step < 1 || step > 4) return;
+        
+        // Hide all panes
+        panes.forEach(pane => pane.classList.remove('active'));
+        
+        // Show active pane
+        const targetPane = document.getElementById(`pane-${step}`);
+        if (targetPane) targetPane.classList.add('active');
+
+        // Update metro tracker bullets
+        stations.forEach(station => {
+            const stationStep = parseInt(station.dataset.step);
+            station.classList.remove('active', 'completed');
+            
+            if (stationStep === step) {
+                station.classList.add('active');
+            } else if (stationStep < step) {
+                station.classList.add('completed');
+            }
+        });
+
+        currentStep = step;
+    }
+
+    // Next step triggers with form validation
+    btnNext.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetStep = parseInt(btn.dataset.next);
+
+            // Validation for Step 2 (Name & Phone)
+            if (currentStep === 2) {
+                const name = document.getElementById('name').value.trim();
+                const phone = document.getElementById('phone_number').value.trim();
+                if (!name || !phone) {
+                    showToast("Please enter your name and phone number.");
+                    return;
+                }
+            }
+
+            navigateToStep(targetStep);
+        });
+    });
+
+    // Previous step triggers
+    btnPrev.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetStep = parseInt(btn.dataset.prev);
+            navigateToStep(targetStep);
+        });
+    });
+
+    // Review Ticket (Compile Summary on Step 4)
+    btnToSummary.addEventListener('click', () => {
+        const name = document.getElementById('name').value.trim();
+        const countryCode = document.getElementById('country-code').value;
+        const rawPhone = document.getElementById('phone_number').value.trim();
+        const status = document.querySelector('input[name="status"]:checked').value;
+        const dietary = document.querySelector('input[name="dietary_pref"]:checked').value;
+        const hasPlusOne = plusOneCheckbox.checked;
+
+        // Map values to Boarding Ticket review card
+        document.getElementById('summary-name').textContent = name;
+        document.getElementById('summary-phone').textContent = `${countryCode} ${rawPhone}`;
+        
+        let statusText = "Yeah, count me in.";
+        if (status === "Hell Yeah") statusText = "HELL YEAH! 🚀";
+        if (status === "Pass") statusText = "I'll pass this time.";
+        document.getElementById('summary-status').textContent = statusText;
+        document.getElementById('summary-diet').textContent = dietary;
+
+        // Render guest column if plus one is toggled
+        const summaryPlusOneRow = document.getElementById('summary-plus-one-row');
+        if (hasPlusOne) {
+            const plusOneName = document.getElementById('plus_one_name').value.trim() || "Guest";
+            const plusOneDietary = document.querySelector('input[name="plus_one_dietary"]:checked').value;
+            
+            summaryPlusOneRow.classList.remove('hidden');
+            document.getElementById('summary-plus-one-val').textContent = `${plusOneName} (${plusOneDietary})`;
+        } else {
+            summaryPlusOneRow.classList.add('hidden');
+        }
+    });
 
     // Show or hide plus one fields smoothly
     plusOneCheckbox.addEventListener('change', () => {
@@ -52,13 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleLookup.style.backgroundColor = '#F9C613';
         } else {
             lookupSection.classList.add('hidden');
-            toggleLookup.textContent = 'Modify RSVP';
+            toggleLookup.textContent = 'Modify Ticket';
             toggleLookup.style.backgroundColor = '';
         }
     });
 
     // Helper: Show custom toast message
-    function showToast(message, duration = 3000) {
+    function showToast(message, duration = 4000) {
         toast.textContent = message;
         toast.classList.remove('hidden');
         // Force reflow
@@ -94,11 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     .eq('phone_number', fullPhone)
                     .maybeSingle();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase query error:', error);
+                    showToast(`Error: ${error.message}`);
+                    return;
+                }
                 guest = data;
             } catch (err) {
-                console.error('Supabase fetch error:', err);
-                showToast('Error searching Cloud Database.');
+                console.error('Database client error:', err);
+                showToast('Failed to check database. Verify your internet connection.');
                 return;
             }
         } else {
@@ -140,14 +239,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('plus_one_name').removeAttribute('required');
             }
 
-            showToast('Ticket details fetched! Modify details and re-submit.');
+            showToast('Commuter profile found! Edit choices and proceed.');
             
-            // Close lookup panel and reset button
+            // Close lookup panel and go directly to Stop 2
             lookupSection.classList.add('hidden');
-            toggleLookup.textContent = 'Modify RSVP';
+            toggleLookup.textContent = 'Modify Ticket';
             toggleLookup.style.backgroundColor = '';
+            
+            navigateToStep(2);
         } else {
-            showToast('Commuter profile not found. Please register first.');
+            showToast('No boarding pass found for this number.');
         }
     });
 
@@ -170,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
             plusOneDietary = document.querySelector('input[name="plus_one_dietary"]:checked').value;
             if (!plusOneName) {
                 showToast('Please enter your guest\'s name.');
+                navigateToStep(3);
                 return;
             }
         }
@@ -193,16 +295,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     .from('guests')
                     .upsert(payload);
 
-                if (error) throw error;
-                showToast('Boarding Pass Generated on Cloud!');
+                if (error) {
+                    console.error('Supabase write error details:', error);
+                    showToast(`Supabase Error: ${error.message} (Check table name/RLS policy)`);
+                    return;
+                }
                 
-                if (status === 'Pass') {
+                showToast('Boarding Pass successfully printed to Supabase Cloud!');
+                
+                // Reset step back to welcome screen on successful submit
+                setTimeout(() => {
                     rsvpForm.reset();
                     plusOneFields.classList.remove('open');
-                }
+                    navigateToStep(1);
+                }, 3000);
+
             } catch (err) {
-                console.error('Supabase save error:', err);
-                showToast('Error syncing Boarding Pass with Cloud.');
+                console.error('Network/Client Error:', err);
+                showToast(`Failed to upload ticket: ${err.message}`);
             }
         } else {
             // LocalStorage Sandbox Save
@@ -211,12 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
             db[fullPhone] = payload;
             localStorage.setItem('cbs_party_rsvp', JSON.stringify(db));
 
-            showToast('Boarding Pass Saved locally! (Sandbox)');
+            showToast('Boarding Pass Printed! Saved locally (Sandbox Mode).');
 
-            if (status === 'Pass') {
+            setTimeout(() => {
                 rsvpForm.reset();
                 plusOneFields.classList.remove('open');
-            }
+                navigateToStep(1);
+            }, 3000);
         }
     });
 });
