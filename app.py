@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
 import database
 
-app = Flask(__name__)
+# Load dotenv configuration
+load_dotenv()
 
-# Initialize the SQLite database
-database.init_db()
+app = Flask(__name__)
 
 @app.route('/')
 def home():
@@ -14,18 +15,23 @@ def home():
 @app.route('/api/rsvp/<phone>', methods=['GET'])
 def get_rsvp(phone):
     """Fetches an existing RSVP by phone number."""
-    # Clean the input phone number
     clean_phone = phone.strip()
-    guest = database.get_guest(clean_phone)
-    if guest:
+    try:
+        guest = database.get_guest(clean_phone)
+        if guest:
+            return jsonify({
+                'success': True,
+                'guest': guest
+            })
         return jsonify({
-            'success': True,
-            'guest': guest
-        })
-    return jsonify({
-        'success': False,
-        'message': 'No registration found for this phone number.'
-    }), 404
+            'success': False,
+            'message': 'No registration found for this phone number.'
+        }), 404
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Server error fetching RSVP: {str(e)}'
+        }), 500
 
 @app.route('/api/rsvp', methods=['POST'])
 def save_rsvp():

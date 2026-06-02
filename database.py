@@ -1,63 +1,86 @@
-import sqlite3
 import os
+import logging
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'party.db')
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def init_db():
-    """Initializes the database and creates the guests table if it does not exist."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS guests (
-            phone_number TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            status TEXT NOT NULL,
-            has_plus_one INTEGER NOT NULL,
-            plus_one_name TEXT,
-            dietary_pref TEXT NOT NULL,
-            plus_one_dietary TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# Load local environment parameters
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Check if active credentials are set
+has_supabase = (
+    SUPABASE_URL 
+    and SUPABASE_KEY 
+    and "your-project" not in SUPABASE_URL 
+    and "your-anon" not in SUPABASE_KEY
+)
+
+supabase_client = None
+if has_supabase:
+    try:
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        logger.info("Successfully connected to Supabase Cloud Database.")
+    except Exception as e:
+        logger.error(f"Error initializing Supabase client: {e}")
+else:
+    logger.warning("Supabase credentials missing or placeholders detected! Defaulting to local sandbox mode.")
+
+# In-Memory Sandbox Mock Database for local testing before config
+_sandbox_db = {}
 
 def get_guest(phone_number):
-    """Retrieves a guest record by phone number. Returns a dict or None."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM guests WHERE phone_number = ?', (phone_number,))
-    row = cursor.fetchone()
-    conn.close()
-    
-    if row:
-        return dict(row)
-    return None
+    """Retrieves a guest profile from Supabase, or sandbox database if offline."""
+    if supabase_client:
+        try:
+            response = supabase_client.table('guests').select('*').eq('phone_number', phone_number).execute()
+            if response.data and len(response.data) > 0:
+                # Return standard dict
+                return response.data[0]
+            return None
+        except Exception as e:
+            logger.error(f"Supabase fetch error: {e}")
+            raise e
+    else:
+        # Sandbox Fallback
+        logger.info(f"[SANDBOX] Fetching guest profile for: {phone_number}")
+        return _sandbox_db.get(phone_number)
 
 def save_guest(data):
-    """Saves or updates a guest record."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO guests (phone_number, name, status, has_plus_one, plus_one_name, dietary_pref, plus_one_dietary, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(phone_number) DO UPDATE SET
-            name=excluded.name,
-            status=excluded.status,
-            has_plus_one=excluded.has_plus_one,
-            plus_one_name=excluded.plus_one_name,
-            dietary_pref=excluded.dietary_pref,
-            plus_one_dietary=excluded.plus_one_dietary,
-            updated_at=CURRENT_TIMESTAMP
-    ''', (
-        data['phone_number'],
-        data['name'],
-        data['status'],
-        1 if data.get('has_plus_one') else 0,
-        data.get('plus_one_name'),
-        data['dietary_pref'],
-        data.get('plus_one_dietary')
-    ))
-    conn.commit()
-    conn.close()
+    """Saves or updates a guest profile in Supabase, or sandbox database if offline."""
+    if supabase_client:
+        try:
+            # Format payload for Postgres matching database schema
+            payload = {
+                'phone_number': data['phone_number'],
+                'name': data['name'],
+                'status': data['status'],
+                'has_plus_one': bool(data.get('has_plus_one')),
+                'plus_one_name': data.get('plus_one_name') or None,
+                'dietary_pref': data['dietary_pref'],
+                'plus_one_dietary': data.get('plus_one_dietary') or None
+            }
+            response = supabase_client.table('guests').upsert(payload).execute()
+            logger.info(f"Supabase upsert success: {response.data}")
+            return response.data
+        except Exception as e:
+            logger.error(f"Supabase upsert error: {e}")
+            raise e
+    else:
+        # Sandbox Fallback
+        logger.info(f"[SANDBOX] Saving guest profile: {data}")
+        _sandbox_db[data['phone_number']] = {
+            'phone_number': data['phone_number'],
+            'name': data['name'],
+            'status': data['status'],
+            'has_plus_one': bool(data.get('has_plus_one')),
+            'plus_one_name': data.get('plus_one_name') or None,
+            'dietary_pref': data['dietary_pref'],
+            'plus_one_dietary': data.get('plus_one_dietary') or None
+        }
+        return _sandbox_db[data['phone_number']]
