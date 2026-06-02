@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBS Gotham Express - Delhi Houseparty</title>
+    <!-- Modern Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="subway-grid-bg"></div>
+
+    <div class="container">
+        <!-- MTA Subway Style Header -->
+        <header class="subway-header animate-fade-in">
+            <div class="subway-bullets">
+                <span class="bullet bullet-c">C</span>
+                <span class="bullet bullet-b">B</span>
+                <span class="bullet bullet-s">S</span>
+            </div>
+            <div class="header-text">
+                <h1>GOTHAM EXPRESS</h1>
+                <p class="subtitle">Delhi Transit Authority • Special Service to Columbia Business School</p>
+            </div>
+        </header>
+
+        <!-- Service Status / Party Details -->
+        <section class="subway-panel details-panel animate-slide-up">
+            <div class="panel-header">
+                <span class="status-indicator live"></span>
+                <h2>SERVICE INFORMATION</h2>
+            </div>
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">ROUTE / DESTINATION</div>
+                    <div class="detail-value">Delhi Depot (Private Houseparty)</div>
+                    <div class="detail-sub">Exact address & maps link will be shared via WhatsApp.</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">DEPARTURE TIME</div>
+                    <div class="detail-value">Saturday, June 13th</div>
+                    <div class="detail-sub">Boarding starts at 8:00 PM till late.</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">SERVICE RULES (DRESS CODE)</div>
+                    <div class="detail-value">Smart Casual</div>
+                    <div class="detail-sub">Preferably Columbia Blue & White.</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">FARE REQUIREMENT</div>
+                    <div class="detail-value">~ INR 2,500 / Commuter</div>
+                    <div class="detail-sub">Covers food & premium beverages.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RSVP Form Station -->
+        <section class="subway-panel form-panel animate-slide-up" style="animation-delay: 0.1s;">
+            <div class="panel-header">
+                <h2>BOARDING PASS TERMINAL</h2>
+                <div class="search-rsvp-btn" id="toggle-lookup">Modify RSVP</div>
+            </div>
+
+            <!-- Phone Lookup / Authentication Mode -->
+            <div class="lookup-container hidden" id="lookup-section">
+                <p class="lookup-desc">Enter your WhatsApp number to fetch and edit your existing RSVP.</p>
+                <div class="lookup-input-row">
+                    <div class="phone-input-wrapper">
+                        <select class="country-code" id="lookup-country-code">
+                            <option value="+91" selected>🇮🇳 +91</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+971">🇦🇪 +971</option>
+                        </select>
+                        <input type="tel" id="lookup-phone" placeholder="Phone Number" required>
+                    </div>
+                    <button class="subway-button btn-search" id="btn-fetch-rsvp">Fetch Ticket</button>
+                </div>
+            </div>
+
+            <form id="rsvp-form" class="rsvp-form">
+                <!-- Step 1: Basic Info -->
+                <div class="form-section">
+                    <label for="phone_number" class="input-label">WhatsApp Number</label>
+                    <div class="phone-input-wrapper">
+                        <select class="country-code" id="country-code" name="country_code">
+                            <option value="+91" selected>🇮🇳 +91</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+971">🇦🇪 +971</option>
+                        </select>
+                        <input type="tel" id="phone_number" name="phone_number" placeholder="98765 43210" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label for="name" class="input-label">Your Name</label>
+                    <input type="text" id="name" name="name" placeholder="John Doe" required>
+                </div>
+
+                <!-- Step 2: Party readiness -->
+                <div class="form-section">
+                    <label class="input-label">Are you ready for the houseparty?</label>
+                    <div class="status-options">
+                        <label class="status-option">
+                            <input type="radio" name="status" value="Hell Yeah" checked>
+                            <span class="status-box">HELL YEAH! 🚀</span>
+                        </label>
+                        <label class="status-option">
+                            <input type="radio" name="status" value="Yeah">
+                            <span class="status-box">Yeah, count me in.</span>
+                        </label>
+                        <label class="status-option">
+                            <input type="radio" name="status" value="Pass">
+                            <span class="status-box">I'll pass this time.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Step 3: Dietary Preference -->
+                <div class="form-section" id="dietary-section">
+                    <label class="input-label">Your Dietary Preference</label>
+                    <div class="diet-options">
+                        <label class="diet-option">
+                            <input type="radio" name="dietary_pref" value="Veg" checked>
+                            <span class="diet-box">🥦 Veg</span>
+                        </label>
+                        <label class="diet-option">
+                            <input type="radio" name="dietary_pref" value="Non-Veg">
+                            <span class="diet-box">🍗 Non-Veg</span>
+                        </label>
+                        <label class="diet-option">
+                            <input type="radio" name="dietary_pref" value="Vegan">
+                            <span class="diet-box">🌱 Vegan</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Step 4: Plus One Toggle -->
+                <div class="form-section plus-one-toggle-wrapper">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="has_plus_one" name="has_plus_one">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">I'm bringing a +1</span>
+                    </label>
+                </div>
+
+                <!-- Step 5: Plus One Details (Dynamic) -->
+                <div class="plus-one-details collapsible" id="plus-one-fields">
+                    <div class="form-section">
+                        <label for="plus_one_name" class="input-label">+1 Name</label>
+                        <input type="text" id="plus_one_name" name="plus_one_name" placeholder="Guest Name">
+                    </div>
+                    <div class="form-section">
+                        <label class="input-label">+1 Dietary Preference</label>
+                        <div class="diet-options">
+                            <label class="diet-option">
+                                <input type="radio" name="plus_one_dietary" value="Veg" checked>
+                                <span class="diet-box">🥦 Veg</span>
+                            </label>
+                            <label class="diet-option">
+                                <input type="radio" name="plus_one_dietary" value="Non-Veg">
+                                <span class="diet-box">🍗 Non-Veg</span>
+                            </label>
+                            <label class="diet-option">
+                                <input type="radio" name="plus_one_dietary" value="Vegan">
+                                <span class="diet-box">🌱 Vegan</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="subway-button submit-btn">
+                    <span>GENERATE TICKET</span>
+                    <div class="train-animation">🚇</div>
+                </button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
