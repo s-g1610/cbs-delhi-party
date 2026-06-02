@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · MTA Control Center — CBS Delhi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ── Variables ── */
+        :root {
+            --bg:           #0A0E14;
+            --bg2:          #111720;
+            --bg3:          #181F2A;
+            --border:       #1E2A3A;
+            --columbia:     #9BCBEB;
+            --navy:         #002C5F;
+            --yellow:       #F9C613;
+            --green:        #00E676;
+            --red:          #FF5252;
+            --orange:       #FF9100;
+            --text:         #E8EDF5;
+            --text-muted:   #5A7A9A;
+            --font-ui:      'Work Sans', sans-serif;
+            --font-head:    'Space Grotesk', sans-serif;
+            --font-mono:    'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        a { color: var(--columbia); text-decoration: none; }
+
+        /* ── Auth Gate ── */
+        #auth-gate {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .auth-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--columbia);
+            border-radius: 12px;
+            padding: 40px 36px;
+            width: 360px;
+            text-align: center;
+        }
+        .auth-box .auth-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .auth-box h2 {
+            font-family: var(--font-head);
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+        .auth-box p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; }
+        .auth-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            font-family: var(--font-mono);
+            color: var(--text);
+            outline: none;
+            margin-bottom: 12px;
+            letter-spacing: 3px;
+        }
+        .auth-input:focus { border-color: var(--columbia); }
+        .auth-btn {
+            width: 100%;
+            background: var(--columbia);
+            color: var(--navy);
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: var(--font-head);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .auth-btn:hover { opacity: 0.9; }
+        .auth-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; display: none; }
+
+        /* ── Main Dashboard ── */
+        #dashboard { display: none; }
+
+        /* ── Header ── */
+        .dash-header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .dash-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .subway-bullets {
+            display: flex;
+            gap: 4px;
+        }
+        .bullet {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .bc { background: var(--columbia); color: var(--navy); }
+        .bb { background: var(--navy); color: white; border: 1px solid #2255a0; }
+        .bs { background: var(--yellow); color: #111; }
+
+        .brand-text h1 {
+            font-family: var(--font-head);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .brand-text p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--green);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .last-updated {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .export-btn {
+            background: transparent;
+            border: 1px solid var(--columbia);
+            color: var(--columbia);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-family: var(--font-head);
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .export-btn:hover { background: var(--columbia); color: var(--navy); }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+        /* ── Main content ── */
+        .dash-body {
+            padding: 28px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ── Stat Cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 22px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .stat-card:hover { border-color: #2a3f55; }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        .stat-card.blue::before   { background: var(--columbia); }
+        .stat-card.green::before  { background: var(--green); }
+        .stat-card.yellow::before { background: var(--yellow); }
+        .stat-card.orange::before { background: var(--orange); }
+        .stat-card.red::before    { background: var(--red); }
+        .stat-card.teal::before   { background: #00BCD4; }
+
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-family: var(--font-head);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Diet breakdown row ── */
+        .diet-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .diet-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .diet-icon { font-size: 1.8rem; }
+        .diet-info {}
+        .diet-name {
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .diet-count {
+            font-family: var(--font-head);
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        .diet-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* ── Filter bar ── */
+        .table-section {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table-toolbar {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .table-title {
+            font-family: var(--font-head);
+            font-size: 0.9rem;
+            font-weight: 700;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .filter-input {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-family: var(--font-ui);
+            color: var(--text);
+            outline: none;
+            width: 200px;
+            transition: border-color 0.2s;
+        }
+        .filter-input:focus { border-color: var(--columbia); }
+        .filter-input::placeholder { color: var(--text-muted); }
+
+        .filter-select {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.82rem;
+            font-family: var(--font-ui);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+        }
+        .filter-select:focus { border-color: var(--columbia); }
+
+        .record-count {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            white-space: nowrap;
+        }
+
+        /* ── Table ── */
+        .table-scroll {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        thead th {
+            text-align: left;
+            padding: 12px 16px;
+            font-family: var(--font-head);
+            font-size: 0.67rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            background: var(--bg3);
+            cursor: pointer;
+            user-select: none;
+        }
+        thead th:hover { color: var(--text); }
+        thead th.sort-asc::after  { content: ' ↑'; color: var(--columbia); }
+        thead th.sort-desc::after { content: ' ↓'; color: var(--columbia); }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(155, 203, 235, 0.04); }
+
+        tbody td {
+            padding: 13px 16px;
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        .td-name { font-weight: 600; }
+        .td-phone {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .badge-yes    { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+        .badge-yeah   { background: rgba(155,203,235,0.12); color: var(--columbia); border: 1px solid rgba(155,203,235,0.2); }
+        .badge-pass   { background: rgba(255,82,82,0.12); color: var(--red); border: 1px solid rgba(255,82,82,0.2); }
+        .badge-veg    { background: rgba(0,230,118,0.08); color: #69F0AE; border: 1px solid rgba(0,230,118,0.15); }
+        .badge-nonveg { background: rgba(255,145,0,0.1); color: var(--orange); border: 1px solid rgba(255,145,0,0.2); }
+        .badge-vegan  { background: rgba(0,188,212,0.1); color: #00BCD4; border: 1px solid rgba(0,188,212,0.2); }
+
+        .plus-one-chip {
+            font-size: 0.72rem;
+            background: rgba(249,198,19,0.1);
+            color: var(--yellow);
+            border: 1px solid rgba(249,198,19,0.2);
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+
+        .td-date {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover { border-color: var(--red); color: var(--red); }
+
+        /* ── Loading / Empty states ── */
+        .loading-row td, .empty-row td {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--columbia);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Toast ── */
+        #admin-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg2);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 9999;
+            border: 1px solid var(--columbia);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        #admin-toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .dash-body { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .diet-row { grid-template-columns: 1fr; }
+            .header-actions .last-updated { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Auth Gate -->
+<div id="auth-gate">
+    <div class="auth-box">
+        <div class="auth-icon">🔐</div>
+        <h2>Admin Access</h2>
+        <p>Enter the admin passcode to access the Control Center.</p>
+        <input type="password" id="auth-input" class="auth-input" placeholder="••••••••" autofocus>
+        <button class="auth-btn" id="auth-submit">Unlock →</button>
+        <p class="auth-error" id="auth-error">Incorrect passcode. Try again.</p>
+    </div>
+</div>
+
+<!-- Dashboard (hidden until auth) -->
+<div id="dashboard">
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="dash-brand">
+            <div class="subway-bullets">
+                <span class="bullet bc">C</span>
+                <span class="bullet bb">B</span>
+                <span class="bullet bs">S</span>
+            </div>
+            <div class="brand-text">
+                <h1>MTA Control Center</h1>
+                <p>CBS Delhi · Dispatch Dashboard</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="live-badge" id="live-badge" style="display:none">
+                <span class="live-dot"></span>
+                <span>Live</span>
+            </div>
+            <span class="last-updated" id="last-updated">—</span>
+            <button class="export-btn" id="refresh-btn">↻ Refresh</button>
+            <button class="export-btn" id="export-btn">⬇ Export CSV</button>
+            <button class="logout-btn" id="logout-btn">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="dash-body">
+
+        <!-- Stats row -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-label">Total RSVPs</div>
+                <div class="stat-value" id="stat-total">—</div>
+                <div class="stat-sub">Unique commuters</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">Attending</div>
+                <div class="stat-value" id="stat-attending">—</div>
+                <div class="stat-sub">Hell Yeah + Yeah</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-label">Declining</div>
+                <div class="stat-value" id="stat-pass">—</div>
+                <div class="stat-sub">Passed this time</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-label">Total Riders</div>
+                <div class="stat-value" id="stat-riders">—</div>
+                <div class="stat-sub">Including +1s</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-label">+1 Guests</div>
+                <div class="stat-value" id="stat-plus-ones">—</div>
+                <div class="stat-sub">Additional riders</div>
+            </div>
+            <div class="stat-card teal">
+                <div class="stat-label">Catering Covers</div>
+                <div class="stat-value" id="stat-covers">—</div>
+                <div class="stat-sub">All meals incl. +1s</div>
+            </div>
+        </div>
+
+        <!-- Dietary breakdown -->
+        <div class="diet-row">
+            <div class="diet-card">
+                <div class="diet-icon">🥦</div>
+                <div class="diet-info">
+                    <div class="diet-name">Vegetarian</div>
+                    <div class="diet-count" id="diet-veg" style="color: #69F0AE">—</div>
+                    <div class="diet-sub">covers (primary + +1)</div>
+                </div>
+            </div>
+            <div class="diet-card">
+                <div class="diet-icon">🍗</div>
+                <div class="diet-info">
+                    <div class="diet-name">Non-Vegetarian</div>
+                    <div class="diet-count" id="diet-nonveg" style="color: var(--orange)">—</div>
+                    <div class="diet-sub">covers (primary + +1)</div>
+                </div>
+            </div>
+            <div class="diet-card">
+                <div class="diet-icon">🌱</div>
+                <div class="diet-info">
+                    <div class="diet-name">Vegan</div>
+                    <div class="diet-count" id="diet-vegan" style="color: #00BCD4">—</div>
+                    <div class="diet-sub">covers (primary + +1)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guest table -->
+        <div class="table-section">
+            <div class="table-toolbar">
+                <div class="table-title">Commuter Manifest</div>
+                <input class="filter-input" id="filter-search" placeholder="🔍 Search name or phone…" type="text">
+                <select class="filter-select" id="filter-status">
+                    <option value="">All Status</option>
+                    <option value="Hell Yeah">Hell Yeah 🚀</option>
+                    <option value="Yeah">Yeah</option>
+                    <option value="Pass">Pass</option>
+                </select>
+                <select class="filter-select" id="filter-diet">
+                    <option value="">All Dietary</option>
+                    <option value="Veg">Veg</option>
+                    <option value="Non-Veg">Non-Veg</option>
+                    <option value="Vegan">Vegan</option>
+                </select>
+                <span class="record-count" id="record-count">0 records</span>
+            </div>
+            <div class="table-scroll">
+                <table id="guest-table">
+                    <thead>
+                        <tr>
+                            <th data-col="name">Name</th>
+                            <th data-col="phone_number">Phone</th>
+                            <th data-col="status">Status</th>
+                            <th data-col="dietary_pref">Dietary</th>
+                            <th data-col="has_plus_one">+1</th>
+                            <th data-col="plus_one_name">Guest Name</th>
+                            <th data-col="plus_one_dietary">Guest Diet</th>
+                            <th data-col="updated_at">Last Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="guest-tbody">
+                        <tr class="loading-row">
+                            <td colspan="9">
+                                <span class="spinner"></span>Loading commuter manifest…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="admin-toast"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────
+// Paste your Supabase Project URL and anon key here
+var SUPABASE_URL = "https://dbdkzbjeoqdydqiscpzv.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZGt6Ymplb3FkeWRxaXNjcHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODU4NTksImV4cCI6MjA5NTk2MTg1OX0.fn_ooD2ONbQWJb7xL38Ljpo052SH_Z5nfEI0y2e1CLo";
+var ADMIN_PASS   = "cbs2026";
+
+var sbClient  = null;
+var allGuests = [];
+var sortCol   = "updated_at";
+var sortDir   = "desc";
+
+console.log("[CBS Admin] Script loaded.");
+
+// ── Auth ───────────────────────────────────────────────────
+var authGate   = document.getElementById("auth-gate");
+var dashboard  = document.getElementById("dashboard");
+var authInput  = document.getElementById("auth-input");
+var authSubmit = document.getElementById("auth-submit");
+var authError  = document.getElementById("auth-error");
+
+function unlock() {
+    if (authInput.value === ADMIN_PASS) {
+        authGate.style.display  = "none";
+        dashboard.style.display = "block";
+        initDashboard();
+    } else {
+        authError.style.display = "block";
+        authInput.value = "";
+        authInput.focus();
+    }
+}
+
+authSubmit.addEventListener("click", function() { unlock(); });
+authInput.addEventListener("keydown", function(e) { if (e.key === "Enter") unlock(); });
+
+document.getElementById("logout-btn").addEventListener("click", function() {
+    dashboard.style.display = "none";
+    authGate.style.display  = "flex";
+    authInput.value = "";
+    authError.style.display = "none";
+});
+
+// ── Init ───────────────────────────────────────────────────
+function initDashboard() {
+    var isConfigured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.length > 20;
+
+    if (isConfigured && typeof window.supabase !== "undefined" && window.supabase.createClient) {
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("[CBS Admin] Connected to Supabase.");
+        fetchGuests();
+        subscribeRealtime();
+    } else {
+        console.warn("[CBS Admin] Sandbox Mode: using LocalStorage.");
+        loadFromLocalStorage();
+    }
+}
+
+// ── Fetch all guests ───────────────────────────────────────
+async function fetchGuests() {
+    try {
+        var result = await sbClient
+            .from("guests")
+            .select("*")
+            .order("updated_at", { ascending: false });
+
+        if (result.error) {
+            showAdminToast("Fetch error: " + result.error.message);
+            renderEmpty("Could not load data: " + result.error.message);
+            return;
+        }
+
+        allGuests = result.data || [];
+        updateAll();
+        document.getElementById("last-updated").textContent = "Updated " + new Date().toLocaleTimeString();
+    } catch (err) {
+        renderEmpty("Network error: " + err.message);
+    }
+}
+
+function loadFromLocalStorage() {
+    var raw = localStorage.getItem("cbs_party_rsvp");
+    allGuests = raw ? Object.values(JSON.parse(raw)) : [];
+    updateAll();
+    showAdminToast("Sandbox Mode: Showing LocalStorage data.");
+}
+
+// ── Realtime subscription ──────────────────────────────────
+function subscribeRealtime() {
+    if (!sbClient) return;
+    sbClient
+        .channel("guests-changes")
+        .on("postgres_changes", { event: "*", schema: "public", table: "guests" }, function() {
+            fetchGuests();
+            showAdminToast("📡 Live update received!");
+        })
+        .subscribe(function(status) {
+            if (status === "SUBSCRIBED") {
+                document.getElementById("live-badge").style.display = "flex";
+            }
+        });
+}
+
+// ── Stats ──────────────────────────────────────────────────
+function updateStats(guests) {
+    var attending = guests.filter(function(g) { return g.status !== "Pass"; });
+    var passing   = guests.filter(function(g) { return g.status === "Pass"; });
+    var plusOnes  = guests.filter(function(g) { return g.has_plus_one; });
+    var riders    = guests.length + plusOnes.length;
+    var covers    = attending.length + attending.filter(function(g) { return g.has_plus_one; }).length;
+
+    var veg = 0, nonveg = 0, vegan = 0;
+    function tally(pref) {
+        if (pref === "Veg")         veg++;
+        else if (pref === "Non-Veg") nonveg++;
+        else if (pref === "Vegan")   vegan++;
+    }
+    attending.forEach(function(g) {
+        tally(g.dietary_pref);
+        if (g.has_plus_one) tally(g.plus_one_dietary);
+    });
+
+    setText("stat-total",     guests.length);
+    setText("stat-attending", attending.length);
+    setText("stat-pass",      passing.length);
+    setText("stat-riders",    riders);
+    setText("stat-plus-ones", plusOnes.length);
+    setText("stat-covers",    covers);
+    setText("diet-veg",    veg);
+    setText("diet-nonveg", nonveg);
+    setText("diet-vegan",  vegan);
+}
+
+function setText(id, val) { document.getElementById(id).textContent = val; }
+
+// ── Render table ───────────────────────────────────────────
+function updateAll() {
+    updateStats(allGuests);
+    renderTable(getFiltered());
+}
+
+function getFiltered() {
+    var search = document.getElementById("filter-search").value.toLowerCase();
+    var status = document.getElementById("filter-status").value;
+    var diet   = document.getElementById("filter-diet").value;
+
+    var list = allGuests.filter(function(g) {
+        var matchSearch = !search ||
+            (g.name && g.name.toLowerCase().indexOf(search) !== -1) ||
+            (g.phone_number && g.phone_number.indexOf(search) !== -1);
+        var matchStatus = !status || g.status === status;
+        var matchDiet   = !diet   || g.dietary_pref === diet;
+        return matchSearch && matchStatus && matchDiet;
+    });
+
+    list.sort(function(a, b) {
+        var va = a[sortCol] !== null && a[sortCol] !== undefined ? a[sortCol] : "";
+        var vb = b[sortCol] !== null && b[sortCol] !== undefined ? b[sortCol] : "";
+        if (typeof va === "boolean") { va = va ? 1 : 0; vb = vb ? 1 : 0; }
+        if (va < vb) return sortDir === "asc" ? -1 : 1;
+        if (va > vb) return sortDir === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    return list;
+}
+
+function dietBadge(pref) {
+    if (!pref) return "—";
+    var cls  = pref === "Veg" ? "badge-veg" : pref === "Non-Veg" ? "badge-nonveg" : "badge-vegan";
+    var icon = pref === "Veg" ? "🥦" : pref === "Non-Veg" ? "🍗" : "🌱";
+    return '<span class="badge ' + cls + '">' + icon + " " + pref + "</span>";
+}
+
+function renderTable(guests) {
+    var tbody = document.getElementById("guest-tbody");
+    var count = guests.length;
+    document.getElementById("record-count").textContent = count + " record" + (count !== 1 ? "s" : "");
+
+    if (!count) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No commuters match the current filters.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = guests.map(function(g) {
+        var statusBadge = g.status === "Hell Yeah"
+            ? '<span class="badge badge-yes">🚀 Hell Yeah</span>'
+            : g.status === "Yeah"
+            ? '<span class="badge badge-yeah">✓ Yeah</span>'
+            : '<span class="badge badge-pass">✗ Pass</span>';
+
+        var plusOneBadge = g.has_plus_one
+            ? '<span class="plus-one-chip">+1</span>'
+            : '<span style="color:var(--text-muted)">—</span>';
+
+        var date = g.updated_at
+            ? new Date(g.updated_at).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
+            : "—";
+
+        return "<tr>" +
+            '<td class="td-name">'  + esc(g.name || "—") + "</td>" +
+            '<td class="td-phone">' + esc(g.phone_number || "—") + "</td>" +
+            "<td>" + statusBadge + "</td>" +
+            "<td>" + dietBadge(g.dietary_pref) + "</td>" +
+            "<td>" + plusOneBadge + "</td>" +
+            "<td>" + esc(g.plus_one_name || "—") + "</td>" +
+            "<td>" + dietBadge(g.plus_one_dietary) + "</td>" +
+            '<td class="td-date">' + date + "</td>" +
+            '<td><button class="delete-btn" onclick="deleteGuest(\'' + esc(g.phone_number) + '\')">Delete</button></td>' +
+            "</tr>";
+    }).join("");
+}
+
+function renderEmpty(msg) {
+    document.getElementById("guest-tbody").innerHTML =
+        '<tr class="empty-row"><td colspan="9">' + msg + "</td></tr>";
+}
+
+// ── Delete ─────────────────────────────────────────────────
+async function deleteGuest(phone) {
+    if (!confirm("Delete RSVP for " + phone + "? This cannot be undone.")) return;
+
+    if (sbClient) {
+        var result = await sbClient.from("guests").delete().eq("phone_number", phone);
+        if (result.error) { showAdminToast("Delete failed: " + result.error.message); return; }
+    } else {
+        var raw = localStorage.getItem("cbs_party_rsvp");
+        if (raw) {
+            var db = JSON.parse(raw);
+            delete db[phone];
+            localStorage.setItem("cbs_party_rsvp", JSON.stringify(db));
+        }
+    }
+
+    allGuests = allGuests.filter(function(g) { return g.phone_number !== phone; });
+    updateAll();
+    showAdminToast("Removed: " + phone);
+}
+
+// ── CSV Export ─────────────────────────────────────────────
+document.getElementById("refresh-btn").addEventListener("click", function() {
+    if (sbClient) {
+        fetchGuests();
+        showAdminToast("Refreshing…");
+    } else {
+        loadFromLocalStorage();
+    }
+});
+
+document.getElementById("export-btn").addEventListener("click", function() {
+    var list = getFiltered();
+    if (!list.length) { showAdminToast("No records to export."); return; }
+
+    var headers = ["Name", "Phone", "Status", "Dietary", "Has +1", "+1 Name", "+1 Dietary", "Updated At"];
+    var rows = list.map(function(g) {
+        return [
+            g.name, g.phone_number, g.status, g.dietary_pref,
+            g.has_plus_one ? "Yes" : "No",
+            g.plus_one_name || "", g.plus_one_dietary || "",
+            g.updated_at
+        ].map(function(v) { return '"' + String(v !== null && v !== undefined ? v : "").replace(/"/g, '""') + '"'; });
+    });
+
+    var csv  = [headers].concat(rows).map(function(r) { return r.join(","); }).join("\n");
+    var blob = new Blob([csv], { type: "text/csv" });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement("a");
+    a.href     = url;
+    a.download = "cbs-delhi-manifest-" + new Date().toISOString().split("T")[0] + ".csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    showAdminToast("📥 CSV exported!");
+});
+
+// ── Filters ────────────────────────────────────────────────
+document.getElementById("filter-search").addEventListener("input",  function() { renderTable(getFiltered()); });
+document.getElementById("filter-status").addEventListener("change", function() { renderTable(getFiltered()); });
+document.getElementById("filter-diet").addEventListener("change",   function() { renderTable(getFiltered()); });
+
+// ── Column sorting ─────────────────────────────────────────
+document.querySelectorAll("thead th[data-col]").forEach(function(th) {
+    th.addEventListener("click", function() {
+        var col = th.dataset.col;
+        if (sortCol === col) {
+            sortDir = sortDir === "asc" ? "desc" : "asc";
+        } else {
+            sortCol = col;
+            sortDir = "asc";
+        }
+        document.querySelectorAll("thead th").forEach(function(t) {
+            t.classList.remove("sort-asc", "sort-desc");
+        });
+        th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+        renderTable(getFiltered());
+    });
+});
+
+// ── Toast ──────────────────────────────────────────────────
+function showAdminToast(msg, dur) {
+    dur = dur || 3500;
+    var t = document.getElementById("admin-toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function() { t.classList.remove("show"); }, dur);
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function esc(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+</script>
+</body>
+</html>

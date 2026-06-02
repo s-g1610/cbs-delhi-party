@@ -3,67 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Columbia Blue Line - Delhi Houseparty</title>
-    <!-- Modern Premium Typography -->
+    <title>The Uptown Express — CBS Delhi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    
-    <!-- Relative stylesheet -->
     <link rel="stylesheet" href="static/css/style.css">
-
-    <!-- Supabase JS Client SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- NYC Skyline Full-Screen Immersive Backdrop -->
-    <div class="nyc-backdrop"></div>
-    <div class="frosted-glass-overlay"></div>
 
-    <div class="interactive-terminal">
-        <!-- Metro Style Progress Tracker -->
-        <div class="metro-map">
-            <div class="metro-track"></div>
-            <div class="metro-stations">
-                <div class="station active" data-step="1">
-                    <span class="station-bullet">1</span>
-                    <span class="station-label">Welcome</span>
+    <!-- Full-screen split layout -->
+    <div class="app-shell">
+
+        <!-- LEFT: Branding + NYC Skyline Panel -->
+        <aside class="brand-panel">
+            <div class="nyc-bg"></div>
+            <div class="brand-overlay"></div>
+            <div class="brand-inner">
+                <div class="brand-top">
+                    <div class="subway-bullets">
+                        <span class="bullet bullet-c">C</span>
+                        <span class="bullet bullet-b">B</span>
+                        <span class="bullet bullet-s">S</span>
+                    </div>
                 </div>
-                <div class="station" data-step="2">
-                    <span class="station-bullet">2</span>
-                    <span class="station-label">Commuter</span>
+
+                <div class="brand-hero">
+                    <p class="brand-eyebrow">Delhi Chapter Presents</p>
+                    <h1 class="brand-title">THE UPTOWN<br>EXPRESS</h1>
+                    <p class="brand-tagline">A Columbia houseparty boarding<br>from New Delhi.</p>
                 </div>
-                <div class="station" data-step="3">
-                    <span class="station-bullet">3</span>
-                    <span class="station-label">Boarding</span>
+
+                <div class="event-manifest">
+                    <div class="manifest-row">
+                        <span class="manifest-icon">🗓</span>
+                        <div>
+                            <span class="manifest-label">Departure</span>
+                            <span class="manifest-val">Saturday, June 13 · 8:00 PM till late</span>
+                        </div>
+                    </div>
+                    <div class="manifest-row">
+                        <span class="manifest-icon">📍</span>
+                        <div>
+                            <span class="manifest-label">Route</span>
+                            <span class="manifest-val">Delhi → New York</span>
+                        </div>
+                    </div>
+                    <div class="manifest-row">
+                        <span class="manifest-icon">👔</span>
+                        <div>
+                            <span class="manifest-label">Dress Code</span>
+                            <span class="manifest-val">Smart Casual — Columbia Blue & White preferred</span>
+                        </div>
+                    </div>
+                    <div class="manifest-row">
+                        <span class="manifest-icon">🎟</span>
+                        <div>
+                            <span class="manifest-label">Commuter Fare</span>
+                            <span class="manifest-val">~INR 2,500 · Premium Beverages & Buffet</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="station" data-step="4">
-                    <span class="station-bullet">4</span>
-                    <span class="station-label">Print Ticket</span>
+
+                <div class="brand-footer">
+                    <span>MTA · CBS TRANSIT</span>
+                    <span>DELHI DIVISION · 2026</span>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Terminal Card containing multi-step interactive screen -->
-        <main class="terminal-card">
-            <!-- Header Banner -->
-            <header class="terminal-header">
-                <div class="subway-bullets">
-                    <span class="bullet bullet-c">C</span>
-                    <span class="bullet bullet-b">B</span>
-                    <span class="bullet bullet-s">S</span>
-                </div>
-                <div class="header-text">
-                    <h1 id="app-title">THE COLUMBIA BLUE LINE</h1>
-                    <p class="subtitle">Delhi Transit • Special service from NYC to Morningside Depot</p>
+        <!-- RIGHT: Form Panel -->
+        <section class="form-panel">
+
+            <!-- Top bar: Metro tracker + Modify Ticket -->
+            <div class="form-topbar">
+                <div class="metro-map">
+                    <div class="metro-track"></div>
+                    <div class="metro-stations">
+                        <div class="station active" data-step="1">
+                            <span class="station-bullet">1</span>
+                            <span class="station-label">Welcome</span>
+                        </div>
+                        <div class="station" data-step="2">
+                            <span class="station-bullet">2</span>
+                            <span class="station-label">Commuter</span>
+                        </div>
+                        <div class="station" data-step="3">
+                            <span class="station-bullet">3</span>
+                            <span class="station-label">Boarding</span>
+                        </div>
+                        <div class="station" data-step="4">
+                            <span class="station-bullet">4</span>
+                            <span class="station-label">Print Ticket</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="search-rsvp-btn" id="toggle-lookup">Modify Ticket</div>
-            </header>
+            </div>
 
-            <!-- Lookup Overlay Pane -->
+            <!-- Lookup / Modify panel -->
             <div class="lookup-panel hidden" id="lookup-section">
                 <h3>RETRIEVE YOUR BOARDING PASS</h3>
-                <p>Enter your WhatsApp phone number to modify your existing ticket.</p>
+                <p>Enter your WhatsApp number to load and edit an existing ticket.</p>
                 <div class="lookup-input-row">
                     <div class="phone-input-wrapper">
                         <select class="country-code" id="lookup-country-code">
@@ -74,63 +115,51 @@
                             <option value="+86">🇨🇳 +86</option>
                             <option value="+971">🇦🇪 +971</option>
                         </select>
-                        <input type="tel" id="lookup-phone" placeholder="9876543210" required>
+                        <input type="tel" id="lookup-phone" placeholder="9876543210">
                     </div>
                     <button class="subway-button btn-search" id="btn-fetch-rsvp">Fetch Ticket</button>
                 </div>
             </div>
 
-            <!-- Form Body with Step containers -->
+            <!-- Multi-step form -->
             <form id="rsvp-form" class="rsvp-form">
-                
-                <!-- STEP 1: Welcome Splash & Departure Notices -->
+
+                <!-- STEP 1: Welcome -->
                 <div class="step-pane active" id="pane-1">
-                    <div class="welcome-grid">
-                        <div class="hero-message">
-                            <h2>Delhi Depot Boarding Notice</h2>
-                            <p>CBS incoming/current folks are invited to board the Columbia Blue Line Special. Gather with the NYC cohort before the Morningside Heights journey.</p>
-                        </div>
-                        <div class="transit-table">
-                            <div class="transit-row">
-                                <span class="row-label">LINE / PATH</span>
-                                <span class="row-value">Delhi to Morningside Depot (Private Residence)</span>
-                            </div>
-                            <div class="transit-row">
-                                <span class="row-label">DEPARTURE</span>
-                                <span class="row-value">Saturday, June 13th @ 8:00 PM Till Late</span>
-                            </div>
-                            <div class="transit-row">
-                                <span class="row-label">SERVICE DRESS CODE</span>
-                                <span class="row-value">Smart Casual (preferably Columbia Blue & White)</span>
-                            </div>
-                            <div class="transit-row">
-                                <span class="row-label">COMMUTER FARE</span>
-                                <span class="row-value">~ INR 2,500 per head (premium beverages & buffet)</span>
-                            </div>
-                        </div>
+                    <div class="step-hero">
+                        <div class="step-hero-icon">🚇</div>
+                        <h2>Delhi Depot Boarding Notice</h2>
+                        <p>CBS incoming students are invited to board the Uptown Express — a special service gathering the Delhi cohort before the NYC journey.</p>
                     </div>
-                    <div class="nav-row">
-                        <button type="button" class="subway-button btn-next" data-next="2">
-                            <span>Swipe MetroCard to Start</span>
-                            <span class="train-animation">🚇</span>
-                        </button>
+                    <div class="mobile-event-summary">
+                        <div class="mes-row"><span>📅 Date</span><strong>Sat, June 13 @ 8 PM</strong></div>
+                        <div class="mes-row"><span>📍 Location</span><strong>Private Residence, Delhi</strong></div>
+                        <div class="mes-row"><span>🎟 Fare</span><strong>~INR 2,500</strong></div>
+                    </div>
+                    <div class="nav-row center">
+                        <div class="swipe-slider" id="swipe-slider">
+                            <div class="swipe-track">
+                                <span class="swipe-hint">Swipe to Board →</span>
+                            </div>
+                            <div class="swipe-thumb" id="swipe-thumb">🚇</div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- STEP 2: Commuter Details -->
                 <div class="step-pane" id="pane-2">
-                    <div class="pane-instruction">
+                    <div class="pane-header">
                         <h2>Identify Commuter Profile</h2>
-                        <p>Verify your contact coordinates for boarding credentials.</p>
+                        <p>We'll use these to generate your boarding pass.</p>
                     </div>
-                    
+
                     <div class="form-section">
-                        <label for="name" class="input-label">Your Full Name</label>
+                        <label for="name" class="input-label">Full Name</label>
                         <input type="text" id="name" name="name" placeholder="John Doe" required>
                     </div>
 
                     <div class="form-section">
-                        <label for="phone_number" class="input-label">WhatsApp Number (For Ticket Delivery)</label>
+                        <label for="phone_number" class="input-label">WhatsApp Number</label>
                         <div class="phone-input-wrapper">
                             <select class="country-code" id="country-code" name="country_code">
                                 <option value="+91" selected>🇮🇳 +91</option>
@@ -145,20 +174,20 @@
                     </div>
 
                     <div class="nav-row split">
-                        <button type="button" class="subway-button btn-prev" data-prev="1">Back</button>
-                        <button type="button" class="subway-button btn-next" data-next="3">Next Station</button>
+                        <button type="button" class="subway-button btn-prev" data-prev="1">← Back</button>
+                        <button type="button" class="subway-button btn-next" data-next="3">Next Station →</button>
                     </div>
                 </div>
 
                 <!-- STEP 3: Boarding Preferences -->
                 <div class="step-pane" id="pane-3">
-                    <div class="pane-instruction">
+                    <div class="pane-header">
                         <h2>Select Boarding Preferences</h2>
-                        <p>Configure dietary selections and coordinate guest listings.</p>
+                        <p>Configure your RSVP and dietary selections.</p>
                     </div>
 
                     <div class="form-section">
-                        <label class="input-label">Are you ready for the houseparty?</label>
+                        <label class="input-label">Are you boarding?</label>
                         <div class="status-options">
                             <label class="status-option">
                                 <input type="radio" name="status" value="Hell Yeah" checked>
@@ -170,7 +199,7 @@
                             </label>
                             <label class="status-option">
                                 <input type="radio" name="status" value="Pass">
-                                <span class="status-box">I'll pass this time.</span>
+                                <span class="status-box">I'll pass this time, see you in NYC 🤙</span>
                             </label>
                         </div>
                     </div>
@@ -201,91 +230,124 @@
                         </label>
                     </div>
 
-                    <!-- Dynamic Plus One details (includes Guest Dietary Preferences) -->
+                    <!-- +1 Details (name + dietary) -->
                     <div class="plus-one-details collapsible" id="plus-one-fields">
-                        <div class="form-section">
-                            <label for="plus_one_name" class="input-label">+1 Full Name</label>
-                            <input type="text" id="plus_one_name" name="plus_one_name" placeholder="Guest Name">
-                        </div>
-                        <div class="form-section">
-                            <label class="input-label">+1 Dietary Preference</label>
-                            <div class="diet-options">
-                                <label class="diet-option">
-                                    <input type="radio" name="plus_one_dietary" value="Veg" checked>
-                                    <span class="diet-box">🥦 Veg</span>
-                                </label>
-                                <label class="diet-option">
-                                    <input type="radio" name="plus_one_dietary" value="Non-Veg">
-                                    <span class="diet-box">🍗 Non-Veg</span>
-                                </label>
-                                <label class="diet-option">
-                                    <input type="radio" name="plus_one_dietary" value="Vegan">
-                                    <span class="diet-box">🌱 Vegan</span>
-                                </label>
+                        <div class="plus-one-card">
+                            <div class="plus-one-card-header">
+                                <span class="plus-one-badge">+1 Guest Details</span>
+                            </div>
+                            <div class="form-section">
+                                <label for="plus_one_name" class="input-label">Guest Commuter Full Name</label>
+                                <input type="text" id="plus_one_name" name="plus_one_name" placeholder="Guest Name">
+                            </div>
+                            <div class="form-section">
+                                <label class="input-label">Guest Commuter Dietary Preference</label>
+                                <div class="diet-options">
+                                    <label class="diet-option">
+                                        <input type="radio" name="plus_one_dietary" value="Veg" checked>
+                                        <span class="diet-box">🥦 Veg</span>
+                                    </label>
+                                    <label class="diet-option">
+                                        <input type="radio" name="plus_one_dietary" value="Non-Veg">
+                                        <span class="diet-box">🍗 Non-Veg</span>
+                                    </label>
+                                    <label class="diet-option">
+                                        <input type="radio" name="plus_one_dietary" value="Vegan">
+                                        <span class="diet-box">🌱 Vegan</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="nav-row split">
-                        <button type="button" class="subway-button btn-prev" data-prev="2">Back</button>
-                        <button type="button" class="subway-button btn-next" data-next="4" id="btn-to-summary">Review Ticket</button>
+                        <button type="button" class="subway-button btn-prev" data-prev="2">← Back</button>
+                        <button type="button" class="subway-button btn-next" data-next="4" id="btn-to-summary">Review Ticket →</button>
                     </div>
                 </div>
 
-                <!-- STEP 4: Review and Print Ticket -->
+                <!-- STEP 4: Boarding Pass Review -->
                 <div class="step-pane" id="pane-4">
-                    <div class="pane-instruction">
-                        <h2>MTA Boarding Pass Review</h2>
-                        <p>Please check your commuting profile before printing.</p>
+
+                    <!-- Sorry screen (shown when Pass is selected) -->
+                    <div class="sorry-screen hidden" id="sorry-screen">
+                        <div class="sorry-icon">🤙</div>
+                        <h2>We'll miss you!</h2>
+                        <p>No worries — your RSVP has been noted. You won't be boarding this time, but we'll see you in NYC soon.</p>
+                        <p class="sorry-sub">The city that never sleeps will be waiting. 🗽</p>
+                        <div class="nav-row split">
+                            <button type="button" class="subway-button btn-prev sorry-back" data-prev="3">← Change my mind</button>
+                            <button type="submit" class="subway-button submit-btn" id="btn-submit-pass">
+                                <span>Confirm RSVP</span>
+                                <span class="train-icon">🤙</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Beautiful Boarding Ticket Ticket Preview -->
+                    <!-- Boarding pass (shown when attending) -->
+                    <div id="boarding-pass-section">
+                    <div class="pane-header">
+                        <h2>MTA Boarding Pass</h2>
+                        <p>Review your details before printing.</p>
+                    </div>
+
                     <div class="boarding-pass-preview">
                         <div class="ticket-top">
-                            <div class="ticket-logo">MTA • CBS TRANSIT</div>
+                            <div class="ticket-brand">
+                                <span class="ticket-bullets">
+                                    <span class="tbullet tc">C</span>
+                                    <span class="tbullet tb">B</span>
+                                    <span class="tbullet ts">S</span>
+                                </span>
+                                <span>MTA · CBS TRANSIT</span>
+                            </div>
                             <div class="ticket-class">FIRST CLASS PASS</div>
                         </div>
                         <div class="ticket-body">
                             <div class="ticket-field">
                                 <span class="ticket-label">COMMUTER NAME</span>
-                                <span class="ticket-val" id="summary-name">John Doe</span>
+                                <span class="ticket-val" id="summary-name">—</span>
                             </div>
                             <div class="ticket-field">
-                                <span class="ticket-label">WHATSAPP CONTACT</span>
-                                <span class="ticket-val" id="summary-phone">+91 9876543210</span>
+                                <span class="ticket-label">WHATSAPP</span>
+                                <span class="ticket-val" id="summary-phone">—</span>
                             </div>
                             <div class="ticket-field">
                                 <span class="ticket-label">BOARDING STATUS</span>
-                                <span class="ticket-val" id="summary-status">Hell Yeah! 🚀</span>
+                                <span class="ticket-val" id="summary-status">—</span>
                             </div>
                             <div class="ticket-field">
-                                <span class="ticket-label">DIETARY PREF</span>
-                                <span class="ticket-val" id="summary-diet">Veg</span>
+                                <span class="ticket-label">DIETARY</span>
+                                <span class="ticket-val" id="summary-diet">—</span>
                             </div>
                             <div class="ticket-field hidden" id="summary-plus-one-row">
                                 <span class="ticket-label">+1 NAME & DIET</span>
-                                <span class="ticket-val" id="summary-plus-one-val">None</span>
+                                <span class="ticket-val" id="summary-plus-one-val">—</span>
                             </div>
                         </div>
-                        <div class="ticket-barcode">
-                            ||||| | |||| ||| || |||| || |||||| | |||
+                        <div class="ticket-route">
+                            <span class="route-from">DEL</span>
+                            <span class="route-line">——— ① ———→</span>
+                            <span class="route-to">NYC</span>
                         </div>
+                        <div class="ticket-barcode">||||| | |||| ||| || |||| || |||||| | |||</div>
                     </div>
 
                     <div class="nav-row split">
-                        <button type="button" class="subway-button btn-prev" data-prev="3">Edit Info</button>
+                        <button type="button" class="subway-button btn-prev" data-prev="3">← Edit Info</button>
                         <button type="submit" class="subway-button submit-btn">
                             <span>Print Boarding Pass</span>
-                            <div class="train-animation">🚇</div>
+                            <span class="train-icon">🚇</span>
                         </button>
                     </div>
+                    </div><!-- end #boarding-pass-section -->
                 </div>
 
             </form>
-        </main>
+        </section>
     </div>
 
-    <!-- Notification Toast -->
+    <!-- Toast -->
     <div id="toast" class="toast hidden"></div>
 
     <script src="static/js/main.js"></script>
