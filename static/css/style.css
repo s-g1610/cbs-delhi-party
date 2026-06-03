@@ -9,7 +9,7 @@
     --subway-green: #00933C;
     --light-gray: #F0F3F7;
     --border: 2px solid var(--subway-black);
-    --font-sans: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-heading: 'Space Grotesk', sans-serif;
     --panel-width: 40%;
 }
