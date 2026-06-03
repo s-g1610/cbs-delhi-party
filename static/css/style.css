@@ -711,6 +711,38 @@ input[type="tel"] {
     background: white;
 }
 
+/* ── BOARDING NOTES ── */
+.boarding-notes {
+    margin-top: 20px;
+    background: #f8f9fb;
+    border: 1px solid #e0e6ef;
+    border-left: 4px solid var(--cbs-navy);
+    border-radius: 8px;
+    padding: 16px 18px;
+}
+.notes-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cbs-navy);
+    margin-bottom: 10px;
+}
+.notes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.notes-list li {
+    font-size: 0.8rem;
+    color: #445;
+    line-height: 1.5;
+}
+
 /* ── NAV ROWS ── */
 .nav-row {
     margin-top: 24px;

@@ -237,6 +237,32 @@ rsvpForm.addEventListener("submit", async function(e) {
     }
 
     var fullPhone = countryCode + rawPhone;
+
+    // ── Capacity check (max 15 attending riders) ──────────────
+    if (sbClient && status !== "Pass") {
+        try {
+            var capResult = await sbClient
+                .from("guests")
+                .select("phone_number, has_plus_one")
+                .neq("status", "Pass");
+
+            if (!capResult.error) {
+                var rows = capResult.data || [];
+                // Exclude current user's own existing booking from count
+                var others = rows.filter(function(r) { return r.phone_number !== fullPhone; });
+                var riderCount = others.reduce(function(sum, r) { return sum + 1 + (r.has_plus_one ? 1 : 0); }, 0);
+                // Add current submission's riders
+                riderCount += 1 + (hasPlusOne ? 1 : 0);
+                if (riderCount > 15) {
+                    showToast("🚫 Booking limit exceeded — we're full! Reach out to Sparsh directly.", 6000);
+                    return;
+                }
+            }
+        } catch (err) {
+            console.warn("Capacity check failed:", err.message);
+        }
+    }
+
     var payload = {
         phone_number:     fullPhone,
         name:             name,
