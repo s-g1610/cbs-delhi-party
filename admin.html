@@ -869,7 +869,7 @@ function renderTable(guests) {
             "<td>" + esc(g.plus_one_name || "—") + "</td>" +
             "<td>" + dietBadge(g.plus_one_dietary) + "</td>" +
             '<td class="td-date">' + date + "</td>" +
-            '<td><button class="delete-btn" onclick="deleteGuest(\'' + esc(g.phone_number) + '\')">Delete</button></td>' +
+            '<td><button class="delete-btn" onclick="confirmDelete(this, \'' + esc(g.phone_number) + '\')">Delete</button></td>' +
             "</tr>";
     }).join("");
 }
@@ -880,8 +880,26 @@ function renderEmpty(msg) {
 }
 
 // ── Delete ─────────────────────────────────────────────────
+function confirmDelete(btn, phone) {
+    if (btn.dataset.confirmed !== "yes") {
+        btn.textContent = "Sure?";
+        btn.style.borderColor = "var(--red)";
+        btn.style.color = "var(--red)";
+        btn.dataset.confirmed = "yes";
+        setTimeout(function() {
+            if (btn.dataset.confirmed === "yes") {
+                btn.textContent = "Delete";
+                btn.style.borderColor = "";
+                btn.style.color = "";
+                btn.dataset.confirmed = "";
+            }
+        }, 3000);
+        return;
+    }
+    deleteGuest(phone);
+}
+
 async function deleteGuest(phone) {
-    if (!confirm("Delete RSVP for " + phone + "? This cannot be undone.")) return;
 
     if (sbClient) {
         var result = await sbClient.from("guests").delete().eq("phone_number", phone);

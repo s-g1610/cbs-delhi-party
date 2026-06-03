@@ -45,9 +45,15 @@ if (!sbClient) {
 function navigateToStep(step) {
     if (step < 1 || step > 4) return;
 
-    panes.forEach(function(p) { p.classList.remove("active"); });
+    var direction = step > currentStep ? "go-forward" : "go-backward";
+
+    panes.forEach(function(p) {
+        p.classList.remove("active", "go-forward", "go-backward");
+    });
     var target = document.getElementById("pane-" + step);
-    if (target) target.classList.add("active");
+    if (target) {
+        target.classList.add("active", direction);
+    }
 
     stations.forEach(function(s) {
         var n = parseInt(s.dataset.step);
@@ -56,9 +62,28 @@ function navigateToStep(step) {
         else if (n < step) s.classList.add("completed");
     });
 
+    // Metro track fill
+    var fillEl2 = document.getElementById("metro-fill");
+    if (fillEl2) {
+        var pct = ["0%", "0%", "33%", "66%", "100%"][step] || "0%";
+        fillEl2.style.width = pct;
+    }
+
     currentStep = step;
     var formEl = document.querySelector(".rsvp-form");
     if (formEl) formEl.scrollTop = 0;
+
+    // Trigger ticket print animation when boarding pass section is shown
+    if (step === 4) {
+        setTimeout(function() {
+            var bp = document.querySelector(".boarding-pass-preview");
+            if (bp) {
+                bp.classList.remove("printing");
+                void bp.offsetWidth; // reflow
+                bp.classList.add("printing");
+            }
+        }, 50);
+    }
 
     if (step === 1 && sliderEl && thumbEl) {
         sliderEl.classList.remove("swiped");
@@ -290,6 +315,7 @@ rsvpForm.addEventListener("submit", async function(e) {
             }
             if (status !== "Pass") {
                 showToast("🎟 Boarding Pass printed! See you on June 13.");
+                launchConfetti();
             }
             setTimeout(resetForm, 3500);
         } catch (err) {
@@ -302,6 +328,7 @@ rsvpForm.addEventListener("submit", async function(e) {
         localStorage.setItem("cbs_party_rsvp", JSON.stringify(db));
         if (status !== "Pass") {
             showToast("🎟 Boarding Pass saved! (Sandbox Mode — add Supabase keys to sync to cloud)");
+            launchConfetti();
         }
         setTimeout(resetForm, 3000);
     }
@@ -379,6 +406,62 @@ if (sliderEl && thumbEl) {
     thumbEl.addEventListener('touchstart', function(e) { e.preventDefault(); onStart(e.touches[0].clientX); }, { passive: false });
     document.addEventListener('touchmove', function(e) { if (dragging) { e.preventDefault(); onMove(e.touches[0].clientX); } }, { passive: false });
     document.addEventListener('touchend',  function()  { onEnd(); });
+}
+
+// ── Confetti ──────────────────────────────────────────────────
+function launchConfetti() {
+    var canvas = document.getElementById("confetti-canvas");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    var colors = ["#9BCBEB", "#F9C613", "#002C5F", "#ffffff", "#FFD700"];
+    var pieces = [];
+    var count  = 140;
+
+    for (var i = 0; i < count; i++) {
+        pieces.push({
+            x:    Math.random() * canvas.width,
+            y:    Math.random() * canvas.height - canvas.height,
+            w:    6 + Math.random() * 8,
+            h:    10 + Math.random() * 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot:  Math.random() * 360,
+            vx:   (Math.random() - 0.5) * 3,
+            vy:   2 + Math.random() * 4,
+            vr:   (Math.random() - 0.5) * 6
+        });
+    }
+
+    var start = null;
+    var duration = 3200;
+
+    function draw(ts) {
+        if (!start) start = ts;
+        var elapsed = ts - start;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        pieces.forEach(function(p) {
+            p.x  += p.vx;
+            p.y  += p.vy;
+            p.rot += p.vr;
+            ctx.save();
+            ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = Math.max(0, 1 - elapsed / duration);
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+        });
+
+        if (elapsed < duration) {
+            requestAnimationFrame(draw);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    requestAnimationFrame(draw);
 }
 
 // ── Toast ─────────────────────────────────────────────────────

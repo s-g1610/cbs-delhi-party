@@ -80,7 +80,7 @@
             <!-- Top bar: Metro tracker + Modify Ticket -->
             <div class="form-topbar">
                 <div class="metro-map">
-                    <div class="metro-track"></div>
+                    <div class="metro-track"><div class="metro-track-fill" id="metro-fill"></div></div>
                     <div class="metro-stations">
                         <div class="station active" data-step="1">
                             <span class="station-bullet">1</span>
@@ -374,6 +374,8 @@
 
     <!-- Toast -->
     <div id="toast" class="toast hidden"></div>
+    <!-- Confetti -->
+    <canvas id="confetti-canvas"></canvas>
 
     <script src="static/js/main.js"></script>
 </body>
