@@ -95,42 +95,71 @@ btnsPrev.forEach(function(btn) {
 
 // ── Populate Review Ticket ────────────────────────────────────
 if (btnToSummary) {
-    btnToSummary.addEventListener("click", function() {
+    btnToSummary.addEventListener("click", async function() {
         var name        = document.getElementById("name").value.trim();
         var countryCode = document.getElementById("country-code").value;
         var rawPhone    = document.getElementById("phone_number").value.trim();
         var status      = document.querySelector("input[name='status']:checked").value;
         var dietary     = document.querySelector("input[name='dietary_pref']:checked").value;
         var hasPlusOne  = plusOneCheckbox.checked;
+        var fullPhone   = countryCode + rawPhone;
 
-        var sorryScreen      = document.getElementById("sorry-screen");
-        var boardingSection  = document.getElementById("boarding-pass-section");
+        var sorryScreen    = document.getElementById("sorry-screen");
+        var boardingSection = document.getElementById("boarding-pass-section");
+        var capacityScreen = document.getElementById("capacity-screen");
+
+        // Hide all screens first
+        sorryScreen.classList.add("hidden");
+        boardingSection.classList.add("hidden");
+        capacityScreen.classList.add("hidden");
+
+        navigateToStep(4);
 
         if (status === "Pass") {
-            // Show sorry screen, hide boarding pass
             sorryScreen.classList.remove("hidden");
-            boardingSection.classList.add("hidden");
-        } else {
-            // Show boarding pass, hide sorry screen
-            sorryScreen.classList.add("hidden");
-            boardingSection.classList.remove("hidden");
+            return;
+        }
 
-            document.getElementById("summary-name").textContent  = name || "—";
-            document.getElementById("summary-phone").textContent = countryCode + " " + rawPhone;
+        // Capacity check for attending guests
+        if (sbClient) {
+            try {
+                var capResult = await sbClient
+                    .from("guests")
+                    .select("phone_number, has_plus_one")
+                    .neq("status", "Pass");
 
-            var statusMap = { "Hell Yeah": "HELL YEAH! 🚀", "Yeah": "Yeah, count me in." };
-            document.getElementById("summary-status").textContent = statusMap[status] || status;
-            document.getElementById("summary-diet").textContent   = dietary;
-
-            var plusOneRow = document.getElementById("summary-plus-one-row");
-            if (hasPlusOne) {
-                var guestName    = document.getElementById("plus_one_name").value.trim() || "Guest";
-                var guestDietary = document.querySelector("input[name='plus_one_dietary']:checked").value;
-                plusOneRow.classList.remove("hidden");
-                document.getElementById("summary-plus-one-val").textContent = guestName + " · " + guestDietary;
-            } else {
-                plusOneRow.classList.add("hidden");
+                if (!capResult.error) {
+                    var others = (capResult.data || []).filter(function(r) { return r.phone_number !== fullPhone; });
+                    var riderCount = others.reduce(function(sum, r) { return sum + 1 + (r.has_plus_one ? 1 : 0); }, 0);
+                    riderCount += 1 + (hasPlusOne ? 1 : 0);
+                    if (riderCount > 15) {
+                        capacityScreen.classList.remove("hidden");
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Capacity check failed:", err.message);
             }
+        }
+
+        // Show boarding pass
+        boardingSection.classList.remove("hidden");
+
+        document.getElementById("summary-name").textContent  = name || "—";
+        document.getElementById("summary-phone").textContent = countryCode + " " + rawPhone;
+
+        var statusMap = { "Hell Yeah": "HELL YEAH! 🚀", "Yeah": "Yeah, count me in." };
+        document.getElementById("summary-status").textContent = statusMap[status] || status;
+        document.getElementById("summary-diet").textContent   = dietary;
+
+        var plusOneRow = document.getElementById("summary-plus-one-row");
+        if (hasPlusOne) {
+            var guestName    = document.getElementById("plus_one_name").value.trim() || "Guest";
+            var guestDietary = document.querySelector("input[name='plus_one_dietary']:checked").value;
+            plusOneRow.classList.remove("hidden");
+            document.getElementById("summary-plus-one-val").textContent = guestName + " · " + guestDietary;
+        } else {
+            plusOneRow.classList.add("hidden");
         }
     });
 }
@@ -237,31 +266,6 @@ rsvpForm.addEventListener("submit", async function(e) {
     }
 
     var fullPhone = countryCode + rawPhone;
-
-    // ── Capacity check (max 15 attending riders) ──────────────
-    if (sbClient && status !== "Pass") {
-        try {
-            var capResult = await sbClient
-                .from("guests")
-                .select("phone_number, has_plus_one")
-                .neq("status", "Pass");
-
-            if (!capResult.error) {
-                var rows = capResult.data || [];
-                // Exclude current user's own existing booking from count
-                var others = rows.filter(function(r) { return r.phone_number !== fullPhone; });
-                var riderCount = others.reduce(function(sum, r) { return sum + 1 + (r.has_plus_one ? 1 : 0); }, 0);
-                // Add current submission's riders
-                riderCount += 1 + (hasPlusOne ? 1 : 0);
-                if (riderCount > 15) {
-                    showToast("🚫 Booking limit exceeded — we're full! Reach out to Sparsh directly.", 6000);
-                    return;
-                }
-            }
-        } catch (err) {
-            console.warn("Capacity check failed:", err.message);
-        }
-    }
 
     var payload = {
         phone_number:     fullPhone,
