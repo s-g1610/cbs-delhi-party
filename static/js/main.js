@@ -75,6 +75,8 @@ function navigateToStep(step) {
 // ── Next buttons ─────────────────────────────────────────────
 btnsNext.forEach(function(btn) {
     btn.addEventListener("click", function() {
+        // btn-to-summary has its own async handler — skip here
+        if (btn.id === "btn-to-summary") return;
         var targetStep = parseInt(btn.dataset.next);
         if (currentStep === 2) {
             var name  = document.getElementById("name").value.trim();
@@ -286,7 +288,9 @@ rsvpForm.addEventListener("submit", async function(e) {
                 showToast("Error: " + result.error.message, 6000);
                 return;
             }
-            showToast("🎟 Boarding Pass printed! See you on June 13.");
+            if (status !== "Pass") {
+                showToast("🎟 Boarding Pass printed! See you on June 13.");
+            }
             setTimeout(resetForm, 3500);
         } catch (err) {
             console.error("Network error:", err);
@@ -296,7 +300,9 @@ rsvpForm.addEventListener("submit", async function(e) {
         var db = JSON.parse(localStorage.getItem("cbs_party_rsvp") || "{}");
         db[fullPhone] = payload;
         localStorage.setItem("cbs_party_rsvp", JSON.stringify(db));
-        showToast("🎟 Boarding Pass saved! (Sandbox Mode — add Supabase keys to sync to cloud)");
+        if (status !== "Pass") {
+            showToast("🎟 Boarding Pass saved! (Sandbox Mode — add Supabase keys to sync to cloud)");
+        }
         setTimeout(resetForm, 3000);
     }
 });
