@@ -109,14 +109,7 @@
                 <p>Enter your WhatsApp number to load and edit an existing ticket.</p>
                 <div class="lookup-input-row">
                     <div class="phone-input-wrapper">
-                        <select class="country-code" id="lookup-country-code">
-                            <option value="+91" selected>🇮🇳 +91</option>
-                            <option value="+1">🇺🇸 +1</option>
-                            <option value="+44">🇬🇧 +44</option>
-                            <option value="+65">🇸🇬 +65</option>
-                            <option value="+86">🇨🇳 +86</option>
-                            <option value="+971">🇦🇪 +971</option>
-                        </select>
+                        <select class="country-code" id="lookup-country-code"></select>
                         <input type="tel" id="lookup-phone" placeholder="9876543210">
                     </div>
                     <button class="subway-button btn-search" id="btn-fetch-rsvp">Fetch Ticket</button>
@@ -163,14 +156,7 @@
                     <div class="form-section">
                         <label for="phone_number" class="input-label">WhatsApp Number</label>
                         <div class="phone-input-wrapper">
-                            <select class="country-code" id="country-code" name="country_code">
-                                <option value="+91" selected>🇮🇳 +91</option>
-                                <option value="+1">🇺🇸 +1</option>
-                                <option value="+44">🇬🇧 +44</option>
-                                <option value="+65">🇸🇬 +65</option>
-                                <option value="+86">🇨🇳 +86</option>
-                                <option value="+971">🇦🇪 +971</option>
-                            </select>
+                            <select class="country-code" id="country-code" name="country_code"></select>
                             <input type="tel" id="phone_number" name="phone_number" placeholder="98765 43210" required>
                         </div>
                     </div>
@@ -377,6 +363,7 @@
     <!-- Confetti -->
     <canvas id="confetti-canvas"></canvas>
 
+    <script src="static/js/countries.js"></script>
     <script src="static/js/main.js"></script>
 </body>
 </html>
