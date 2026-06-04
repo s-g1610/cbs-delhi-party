@@ -1,7 +1,6 @@
 // ── Supabase Configuration ──────────────────────────────────
-// Replace with your values from Supabase → Settings → API
-var SUPABASE_URL = "https://dbdkzbjeoqdydqiscpzv.supabase.co";
-var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZGt6Ymplb3FkeWRxaXNjcHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODU4NTksImV4cCI6MjA5NTk2MTg1OX0.fn_ooD2ONbQWJb7xL38Ljpo052SH_Z5nfEI0y2e1CLo";
+// Credentials are loaded from config.js (gitignored)
+// SUPABASE_URL and SUPABASE_KEY are set by config.js
 
 var sbClient = null;
 var isConfigured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.length > 20;

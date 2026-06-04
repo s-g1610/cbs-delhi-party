@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ── Variables ── */
@@ -663,10 +664,8 @@
 
 <script>
 // ── Config ─────────────────────────────────────────────────
-// Paste your Supabase Project URL and anon key here
-var SUPABASE_URL = "https://dbdkzbjeoqdydqiscpzv.supabase.co";
-var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRiZGt6Ymplb3FkeWRxaXNjcHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODU4NTksImV4cCI6MjA5NTk2MTg1OX0.fn_ooD2ONbQWJb7xL38Ljpo052SH_Z5nfEI0y2e1CLo";
-var ADMIN_PASS   = "cbs2026";
+// Credentials loaded from config.js (gitignored)
+// SUPABASE_URL, SUPABASE_KEY, ADMIN_PASS are set by config.js
 
 var sbClient  = null;
 var allGuests = [];

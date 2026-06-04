@@ -1,4 +1,6 @@
 .env
+config.js
+node_modules/
 __pycache__/
 *.pyc
 *.db
