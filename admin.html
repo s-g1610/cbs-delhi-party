@@ -712,6 +712,7 @@ function initDashboard() {
         console.log("[CBS Admin] Connected to Supabase.");
         fetchGuests();
         subscribeRealtime();
+        setInterval(function() { fetchGuests(); }, 10000);
     } else {
         console.warn("[CBS Admin] Sandbox Mode: using LocalStorage.");
         loadFromLocalStorage();
