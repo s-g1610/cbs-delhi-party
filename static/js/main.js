@@ -158,7 +158,7 @@ if (btnToSummary) {
                     var others = (capResult.data || []).filter(function(r) { return r.phone_number !== fullPhone; });
                     var riderCount = others.reduce(function(sum, r) { return sum + 1 + (r.has_plus_one ? 1 : 0); }, 0);
                     riderCount += 1 + (hasPlusOne ? 1 : 0);
-                    if (riderCount > 15) {
+                    if (riderCount > 20) {
                         capacityScreen.classList.remove("hidden");
                         return;
                     }
