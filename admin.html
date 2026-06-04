@@ -682,11 +682,17 @@ var authSubmit = document.getElementById("auth-submit");
 var authError  = document.getElementById("auth-error");
 
 function unlock() {
+    if (typeof ADMIN_PASS === "undefined") {
+        authError.textContent = "Config not loaded. Check Vercel env vars.";
+        authError.style.display = "block";
+        return;
+    }
     if (authInput.value === ADMIN_PASS) {
         authGate.style.display  = "none";
         dashboard.style.display = "block";
         initDashboard();
     } else {
+        authError.textContent = "Incorrect passcode. Try again.";
         authError.style.display = "block";
         authInput.value = "";
         authInput.focus();
