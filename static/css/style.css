@@ -441,11 +441,15 @@ html, body {
 }
 .mes-row {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 2px;
     font-size: 0.85rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(155,203,235,0.3);
 }
-.mes-row span { color: #666; }
-.mes-row strong { color: var(--cbs-navy); }
+.mes-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mes-row span { color: #666; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.mes-row strong { color: var(--cbs-navy); font-size: 0.9rem; line-height: 1.4; }
 
 /* ── PANE HEADERS ── */
 .pane-header {
